@@ -256,8 +256,13 @@ class FfiModel with ChangeNotifier {
     } else {
       final icon =
           '${secure == true ? 'secure' : 'insecure'}${direct == true ? '' : '_relay'}';
-      final iconWidget =
-          SvgPicture.asset('assets/$icon.svg', width: 48, height: 48);
+      final Widget iconWidget = Image.asset(
+        'assets/small_logo.png',
+        width: 48,
+        height: 48,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => const SizedBox(width: 48, height: 48),
+      );
       String connectionText =
           getConnectionText(secure!, direct!, cachedPeerData.streamType);
       return Column(

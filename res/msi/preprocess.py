@@ -440,7 +440,7 @@ def gen_content_between_tags(filename, tag_start, tag_end, func):
 
 
 def prepare_resources():
-    icon_src = Path(sys.argv[0]).parent.joinpath("../icon.ico")
+    icon_src = Path(sys.argv[0]).parent.joinpath("../app_icon.ico")
     icon_dst = Path(sys.argv[0]).parent.joinpath("Package/Resources/icon.ico")
     if icon_src.exists():
         icon_dst.parent.mkdir(parents=True, exist_ok=True)
