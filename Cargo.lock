@@ -3353,7 +3353,6 @@ dependencies = [
  "directories-next",
  "dirs-next",
  "dlopen",
- "dotenvy",
  "env_logger 0.11.6",
  "filetime",
  "flexi_logger",
