@@ -4,7 +4,7 @@ project(rustdesk LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "rustdesk")
+set(BINARY_NAME "${PROJECT_NAME}")
 
 # Explicitly opt into modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -65,6 +65,7 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
+set_target_properties(${BINARY_NAME} PROPERTIES OUTPUT_NAME "CoAsia_Remote")
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
