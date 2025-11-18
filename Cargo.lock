@@ -2028,7 +2028,7 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330c60081dcc4c72131f8eb70510f1ac07223e5d4163db481a04a0befcffa412"
 dependencies = [
- "libloading 0.7.4",
+ "libloading 0.8.4",
 ]
 
 [[package]]
@@ -2094,6 +2094,12 @@ dependencies = [
  "serde 1.0.203",
  "strsim 0.10.0",
 ]
+
+[[package]]
+name = "dotenvy"
+version = "0.15.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
 
 [[package]]
 name = "downcast-rs"
@@ -3347,6 +3353,7 @@ dependencies = [
  "directories-next",
  "dirs-next",
  "dlopen",
+ "dotenvy",
  "env_logger 0.11.6",
  "filetime",
  "flexi_logger",
