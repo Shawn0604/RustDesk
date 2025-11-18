@@ -25,6 +25,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart' as window_size;
 import '../widgets/button.dart';
+import 'package:http/http.dart' as http;
+
 
 class DesktopHomePage extends StatefulWidget {
   const DesktopHomePage({Key? key}) : super(key: key);
@@ -41,6 +43,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
 
   @override
   bool get wantKeepAlive => true;
+  bool _loggedIn = false;
   var systemError = '';
   StreamSubscription? _uniLinksSubscription;
   var svcStopped = false.obs;
@@ -59,17 +62,34 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
+    // 🔐 還沒登入 → 顯示登入面板
+    if (!_loggedIn) {
+      return _buildBlock(
+        child: LoginPanel(
+          onLoginSuccess: () {
+            setState(() {
+              _loggedIn = true;
+            });
+          },
+        ),
+      );
+    }
+
+    // ✅ 已登入 → 顯示原本的 RustDesk Home 內容
     final isIncomingOnly = bind.isIncomingOnly();
     return _buildBlock(
-        child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildLeftPane(context),
-        if (!isIncomingOnly) const VerticalDivider(width: 1),
-        if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
-      ],
-    ));
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          buildLeftPane(context),
+          if (!isIncomingOnly) const VerticalDivider(width: 1),
+          if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
+        ],
+      ),
+    );
   }
+
 
   Widget _buildBlock({required Widget child}) {
     return buildRemoteBlock(
@@ -867,6 +887,194 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     );
   }
 }
+
+class LoginPanel extends StatefulWidget {
+  final VoidCallback onLoginSuccess;
+
+  const LoginPanel({super.key, required this.onLoginSuccess});
+
+  @override
+  State<LoginPanel> createState() => _LoginPanelState();
+}
+
+class _LoginPanelState extends State<LoginPanel> {
+  final _accountController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final FocusNode _passwordFocusNode = FocusNode();
+
+  bool _loading = false;
+  String? _errorText;
+
+  Future<void> _login() async {
+  final account = _accountController.text.trim();
+  final password = _passwordController.text;
+
+  if (account.isEmpty || password.isEmpty) {
+    setState(() {
+      _errorText = '帳號與密碼不能空白';
+    });
+    return;
+  }
+
+  setState(() {
+    _loading = true;
+    _errorText = null;
+  });
+
+  try {
+    final uri = Uri.parse('http://10.1.3.99:8000/auth');
+    final resp = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': account,
+        'password': password,
+      }),
+    );
+
+    debugPrint('AD login status: ${resp.statusCode}');
+    debugPrint('AD login body: ${resp.body}');
+
+    if (resp.statusCode == 200) {
+      final data = jsonDecode(resp.body);
+
+      final bool success = data['success'] == true;
+      final String? role = data['role'];
+      final String backendMsg = (data['message'] ?? '') as String;
+
+      if (!success) {
+        // ❌ 後端已經幫你分很多種原因（帳密錯 / 不在群組 / 找不到 user ...）
+        setState(() {
+          _errorText = backendMsg.isNotEmpty ? backendMsg : '登入失敗';
+        });
+        return;
+      }
+
+      // ✅ success = true 才會走到這裡
+      if (role == 'controller') {
+        debugPrint('AD login success, role = controller');
+        // TODO：如果之後要存角色，可以在這裡存 global state
+        // GlobalAuth.role = 'controller';
+        // GlobalAuth.username = account;
+
+        widget.onLoginSuccess(); // 通知外面：登入成功
+      } else {
+        // 預防性處理：目前你的後端設計只會在 controller 才 success
+        // 但如果未來你允許一般 user 也 success，可以在這裡分流
+        setState(() {
+          _errorText = '登入成功，但沒有控制者權限（role=$role）';
+        });
+      }
+    } else {
+      setState(() {
+        _errorText = '登入失敗，請稍後再試或聯絡 IT。';
+      });
+    }
+  } catch (e) {
+    debugPrint('AD login exception: $e');
+    setState(() {
+      _errorText = '無法連線到驗證伺服器，請確認是否在公司網路或 VPN。';
+    });
+  } finally {
+    setState(() {
+      _loading = false;
+    });
+  }
+}
+
+
+  @override
+  void dispose() {
+    _accountController.dispose();
+    _passwordController.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Card(
+          elevation: 4,
+          margin: const EdgeInsets.all(24),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'CoAsia 登入',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 帳號欄位
+                TextField(
+                  controller: _accountController,
+                  decoration: const InputDecoration(
+                    labelText: '帳號（例如：shawn_tsai）',
+                    border: OutlineInputBorder(),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  onSubmitted: (_) {
+                    FocusScope.of(context).requestFocus(_passwordFocusNode);
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // 密碼欄位
+                TextField(
+                  controller: _passwordController,
+                  focusNode: _passwordFocusNode,
+                  decoration: const InputDecoration(
+                    labelText: '密碼（電腦登入密碼）',
+                    border: OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) {
+                    if (!_loading) {
+                      _login();
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                if (_errorText != null) ...[
+                  Text(
+                    _errorText!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _login,
+                    child: _loading
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('登入'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 void setPasswordDialog({VoidCallback? notEmptyCallback}) async {
   final pw = await bind.mainGetPermanentPassword();

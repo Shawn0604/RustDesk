@@ -32,6 +32,8 @@ import 'models/platform_model.dart';
 import 'package:flutter_hbb/plugin/handlers.dart'
     if (dart.library.html) 'package:flutter_hbb/web/plugin/handlers.dart';
 
+import 'package:http/http.dart' as http;
+
 /// Basic window and launch properties.
 int? kWindowId;
 WindowType? kWindowType;
