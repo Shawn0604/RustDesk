@@ -65,7 +65,7 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
-set_target_properties(${BINARY_NAME} PROPERTIES OUTPUT_NAME "CoAsia_Remote")
+set_target_properties(${BINARY_NAME} PROPERTIES OUTPUT_NAME "CoAsia_Remote_Controller")
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.

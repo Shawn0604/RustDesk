@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "Purslane Ltd" "\0"
-            VALUE "FileDescription", "CoAsia_Remote Desktop" "\0"
+            VALUE "FileDescription", "CoAsia_Remote_Controller Desktop" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "CoAsia_Remote" "\0"
+            VALUE "InternalName", "CoAsia_Remote_Controller" "\0"
             VALUE "LegalCopyright", "Copyright © 2025 Purslane Ltd. All rights reserved." "\0"
-            VALUE "OriginalFilename", "CoAsia_Remote.exe" "\0"
-            VALUE "ProductName", "CoAsia_Remote" "\0"
+            VALUE "OriginalFilename", "CoAsia_Remote_Controller.exe" "\0"
+            VALUE "ProductName", "CoAsia_Remote_Controller" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
