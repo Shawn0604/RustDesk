@@ -25,7 +25,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart' as window_size;
 import '../widgets/button.dart';
-import 'package:http/http.dart' as http;
+// import 'package:http/http.dart' as http;
 
 
 class DesktopHomePage extends StatefulWidget {
@@ -43,7 +43,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
 
   @override
   bool get wantKeepAlive => true;
-  bool _loggedIn = false;
+  // bool _loggedIn = false;
   var systemError = '';
   StreamSubscription? _uniLinksSubscription;
   var svcStopped = false.obs;
@@ -63,31 +63,30 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    // 🔐 還沒登入 → 顯示登入面板
-    if (!_loggedIn) {
-      return _buildBlock(
-        child: LoginPanel(
-          onLoginSuccess: () {
-            setState(() {
-              _loggedIn = true;
-            });
-          },
-        ),
-      );
-    }
+    // // 🔐 還沒登入 → 顯示登入面板
+    // if (!_loggedIn) {
+    //   return _buildBlock(
+    //     child: LoginPanel(
+    //       onLoginSuccess: () {
+    //         setState(() {
+    //           _loggedIn = true;
+    //         });
+    //       },
+    //     ),
+    //   );
+    // }
 
     // ✅ 已登入 → 顯示原本的 RustDesk Home 內容
     final isIncomingOnly = bind.isIncomingOnly();
     return _buildBlock(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildLeftPane(context),
-          if (!isIncomingOnly) const VerticalDivider(width: 1),
-          if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
-        ],
-      ),
-    );
+       child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildLeftPane(context),
+        if (!isIncomingOnly) const VerticalDivider(width: 1),
+        if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
+      ],
+    ));
   }
 
 
@@ -888,6 +887,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   }
 }
 
+/*
 class LoginPanel extends StatefulWidget {
   final VoidCallback onLoginSuccess;
 
@@ -906,82 +906,80 @@ class _LoginPanelState extends State<LoginPanel> {
   String? _errorText;
 
   Future<void> _login() async {
-  final account = _accountController.text.trim();
-  final password = _passwordController.text;
+    final account = _accountController.text.trim();
+    final password = _passwordController.text;
 
-  if (account.isEmpty || password.isEmpty) {
-    setState(() {
-      _errorText = '帳號與密碼不能空白';
-    });
-    return;
-  }
-
-  setState(() {
-    _loading = true;
-    _errorText = null;
-  });
-
-  try {
-    final uri = Uri.parse('http://10.1.3.99:8000/auth');
-    final resp = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': account,
-        'password': password,
-      }),
-    );
-
-    debugPrint('AD login status: ${resp.statusCode}');
-    debugPrint('AD login body: ${resp.body}');
-
-    if (resp.statusCode == 200) {
-      final data = jsonDecode(resp.body);
-
-      final bool success = data['success'] == true;
-      final String? role = data['role'];
-      final String backendMsg = (data['message'] ?? '') as String;
-
-      if (!success) {
-        // ❌ 後端已經幫你分很多種原因（帳密錯 / 不在群組 / 找不到 user ...）
-        setState(() {
-          _errorText = backendMsg.isNotEmpty ? backendMsg : '登入失敗';
-        });
-        return;
-      }
-
-      // ✅ success = true 才會走到這裡
-      if (role == 'controller') {
-        debugPrint('AD login success, role = controller');
-        // TODO：如果之後要存角色，可以在這裡存 global state
-        // GlobalAuth.role = 'controller';
-        // GlobalAuth.username = account;
-
-        widget.onLoginSuccess(); // 通知外面：登入成功
-      } else {
-        // 預防性處理：目前你的後端設計只會在 controller 才 success
-        // 但如果未來你允許一般 user 也 success，可以在這裡分流
-        setState(() {
-          _errorText = '登入成功，但沒有控制者權限（role=$role）';
-        });
-      }
-    } else {
+    if (account.isEmpty || password.isEmpty) {
       setState(() {
-        _errorText = '登入失敗，請稍後再試或聯絡 IT。';
+        _errorText = '帳號與密碼不能空白';
+      });
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _errorText = null;
+    });
+
+    try {
+      final uri = Uri.parse('http://10.1.3.99:8000/auth');
+      final resp = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': account,
+          'password': password,
+        }),
+      );
+
+      debugPrint('AD login status: ${resp.statusCode}');
+      debugPrint('AD login body: ${resp.body}');
+
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body);
+
+        final bool success = data['success'] == true;
+        final String? role = data['role'];
+        final String backendMsg = (data['message'] ?? '') as String;
+
+        if (!success) {
+          setState(() {
+            _errorText = backendMsg.isNotEmpty ? backendMsg : '登入失敗';
+          });
+          return;
+        }
+
+        // ✅ success = true 才會走到這裡
+        if (role == 'controller') {
+          debugPrint('AD login success, role = controller');
+          // TODO：如果之後要存角色，可以在這裡存 global state
+          // GlobalAuth.role = 'controller';
+          // GlobalAuth.username = account;
+
+          widget.onLoginSuccess(); // 通知外面：登入成功
+        } else {
+          // 預防性處理：目前你的後端設計只會在 controller 才 success
+          // 但如果未來你允許一般 user 也 success，可以在這裡分流
+          setState(() {
+            _errorText = '登入成功，但沒有控制者權限（role=$role）';
+          });
+        }
+      } else {
+        setState(() {
+          _errorText = '登入失敗，請稍後再試或聯絡 IT。';
+        });
+      }
+    } catch (e) {
+      debugPrint('AD login exception: $e');
+      setState(() {
+        _errorText = '無法連線到驗證伺服器，請確認是否在公司網路或 VPN。';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
       });
     }
-  } catch (e) {
-    debugPrint('AD login exception: $e');
-    setState(() {
-      _errorText = '無法連線到驗證伺服器，請確認是否在公司網路或 VPN。';
-    });
-  } finally {
-    setState(() {
-      _loading = false;
-    });
   }
-}
-
 
   @override
   void dispose() {
@@ -1073,8 +1071,7 @@ class _LoginPanelState extends State<LoginPanel> {
       ),
     );
   }
-}
-
+}*/
 
 void setPasswordDialog({VoidCallback? notEmptyCallback}) async {
   final pw = await bind.mainGetPermanentPassword();

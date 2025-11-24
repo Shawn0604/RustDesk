@@ -1007,7 +1007,7 @@ class _CmControlPanel extends StatelessWidget {
   }
 
   buildUnAuthorized(BuildContext context) {
-    final bool canElevate = bind.cmCanElevate();
+    final bool canElevate =  false;
     final model = Provider.of<ServerModel>(context);
     final showElevation = canElevate &&
         model.showElevation &&
