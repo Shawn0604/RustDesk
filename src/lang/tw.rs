@@ -466,7 +466,7 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("show_monitors_tip", "在工具列中顯示顯示器"),
         ("View Mode", "瀏覽模式"),
         ("login_linux_tip", "需要登入到遠端 Linux 使用者帳戶才能啟用 X 桌面環境"),
-        ("verify_rustdesk_password_tip", "驗證 RustDesk 密碼"),
+        ("verify_rustdesk_password_tip", "驗證 CoAsia Remote 密碼"),
         ("remember_account_tip", "記住此使用者帳戶"),
         ("os_account_desk_tip", "此使用者帳戶將用於登入遠端作業系統並啟用無頭模式 (headless mode) 的桌面連線"),
         ("OS Account", "作業系統使用者帳戶"),
