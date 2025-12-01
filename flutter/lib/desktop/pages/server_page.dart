@@ -1006,67 +1006,77 @@ class _CmControlPanel extends StatelessWidget {
     ).marginOnly(bottom: buttonBottomMargin);
   }
 
-  buildUnAuthorized(BuildContext context) {
-    final bool canElevate =  false;
-    final model = Provider.of<ServerModel>(context);
-    final showElevation = canElevate &&
-        model.showElevation &&
-        client.type_() == ClientType.remote;
-    final showAccept = model.approveMode != 'password';
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Offstage(
-          offstage: !showElevation || !showAccept,
-          child: buildButton(context, color: Colors.green[700], onClick: () {
+  Widget buildUnAuthorized(BuildContext context) {
+  // 🔹 新增：只要進到這個畫面，就把視窗叫出來 + 拉到最前面
+  windowManager.show();
+  windowManager.focus();
+
+  final bool canElevate = false;
+  final model = Provider.of<ServerModel>(context);
+  final showElevation = canElevate &&
+      model.showElevation &&
+      client.type_() == ClientType.remote;
+  final showAccept = model.approveMode != 'password';
+
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      Offstage(
+        offstage: !showElevation || !showAccept,
+        child: buildButton(
+          context,
+          color: Colors.green[700],
+          onClick: () {
             handleAccept(context);
             handleElevate(context);
             windowManager.minimize();
           },
-              text: 'Accept and Elevate',
-              icon: Icon(
-                Icons.security_rounded,
-                color: Colors.white,
-                size: 14,
-              ),
-              textColor: Colors.white,
-              tooltip: 'accept_and_elevate_btn_tooltip'),
+          text: 'Accept and Elevate',
+          icon: Icon(
+            Icons.security_rounded,
+            color: Colors.white,
+            size: 14,
+          ),
+          textColor: Colors.white,
+          tooltip: 'accept_and_elevate_btn_tooltip',
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (showAccept)
-              Expanded(
-                child: Column(
-                  children: [
-                    buildButton(
-                      context,
-                      color: MyTheme.accent,
-                      onClick: () {
-                        handleAccept(context);
-                        windowManager.minimize();
-                      },
-                      text: 'Accept',
-                      textColor: Colors.white,
-                    ),
-                  ],
-                ),
-              ),
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (showAccept)
             Expanded(
-              child: buildButton(
-                context,
-                color: Colors.transparent,
-                border: Border.all(color: Colors.grey),
-                onClick: handleDisconnect,
-                text: 'Cancel',
-                textColor: null,
+              child: Column(
+                children: [
+                  buildButton(
+                    context,
+                    color: MyTheme.accent,
+                    onClick: () {
+                      handleAccept(context);
+                      windowManager.minimize();
+                    },
+                    text: 'Accept',
+                    textColor: Colors.white,
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ],
-    ).marginOnly(bottom: buttonBottomMargin);
-  }
+          Expanded(
+            child: buildButton(
+              context,
+              color: Colors.transparent,
+              border: Border.all(color: Colors.grey),
+              onClick: handleDisconnect,
+              text: 'Cancel',
+              textColor: null,
+            ),
+          ),
+        ],
+      ),
+    ],
+  ).marginOnly(bottom: buttonBottomMargin);
+}
+
 
   Widget buildButton(BuildContext context,
       {required Color? color,
