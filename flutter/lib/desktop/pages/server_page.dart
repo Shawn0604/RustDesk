@@ -1007,7 +1007,6 @@ class _CmControlPanel extends StatelessWidget {
   }
 
   Widget buildUnAuthorized(BuildContext context) {
-  // 🔹 新增：只要進到這個畫面，就把視窗叫出來 + 拉到最前面
   windowManager.show();
   windowManager.focus();
 
