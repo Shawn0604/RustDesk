@@ -8,6 +8,8 @@
 
 ---
 
+> 想在新電腦上 clone 這個專案、裝環境、編輯與建置？請看 [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)。
+
 ## 目錄
 
 - [專案背景](#專案背景)
