@@ -1,182 +1,184 @@
-<p align="center">
-  <img src="res/logo-header.svg" alt="RustDesk - Your remote desktop"><br>
-  <a href="#raw-steps-to-build">Build</a> •
-  <a href="#how-to-build-with-docker">Docker</a> •
-  <a href="#file-structure">Structure</a> •
-  <a href="#snapshot">Snapshot</a><br>
-  [<a href="docs/README-UA.md">Українська</a>] | [<a href="docs/README-CS.md">česky</a>] | [<a href="docs/README-ZH.md">中文</a>] | [<a href="docs/README-HU.md">Magyar</a>] | [<a href="docs/README-ES.md">Español</a>] | [<a href="docs/README-FA.md">فارسی</a>] | [<a href="docs/README-FR.md">Français</a>] | [<a href="docs/README-DE.md">Deutsch</a>] | [<a href="docs/README-PL.md">Polski</a>] | [<a href="docs/README-ID.md">Indonesian</a>] | [<a href="docs/README-FI.md">Suomi</a>] | [<a href="docs/README-ML.md">മലയാളം</a>] | [<a href="docs/README-JP.md">日本語</a>] | [<a href="docs/README-NL.md">Nederlands</a>] | [<a href="docs/README-IT.md">Italiano</a>] | [<a href="docs/README-RU.md">Русский</a>] | [<a href="docs/README-PTBR.md">Português (Brasil)</a>] | [<a href="docs/README-EO.md">Esperanto</a>] | [<a href="docs/README-KR.md">한국어</a>] | [<a href="docs/README-AR.md">العربي</a>] | [<a href="docs/README-VN.md">Tiếng Việt</a>] | [<a href="docs/README-DA.md">Dansk</a>] | [<a href="docs/README-GR.md">Ελληνικά</a>] | [<a href="docs/README-TR.md">Türkçe</a>] | [<a href="docs/README-NO.md">Norsk</a>] | [<a href="docs/README-RO.md">Română</a>]<br>
-  <b>We need your help to translate this README, <a href="https://github.com/rustdesk/rustdesk/tree/master/src/lang">RustDesk UI</a> and <a href="https://github.com/rustdesk/doc.rustdesk.com">RustDesk Doc</a> to your native language</b>
-</p>
+# CoAsia Remote Desktop（內部遠端連線專案）
 
-> [!Caution]
-> **Misuse Disclaimer:** <br>
-> The developers of RustDesk do not condone or support any unethical or illegal use of this software. Misuse, such as unauthorized access, control or invasion of privacy, is strictly against our guidelines. The authors are not responsible for any misuse of the application.
+> 本專案是以開源專案 [RustDesk](https://github.com/rustdesk/rustdesk) 為基礎，由 CoAsia 內部客製化而成的遠端連線工具，用途為公司內部遠端支援 / 遠端桌面控制。
+> 原始 RustDesk 專案的完整說明（安裝依賴、原始建置流程、多國語言版本連結等）已搬移保存到 [docs/README-rustdesk-upstream.md](docs/README-rustdesk-upstream.md)，一般開發只需參考本文件即可。
 
+> [!CAUTION]
+> 本文件與部分分支的程式碼內含**內部網路資訊**（例如驗證伺服器內網 IP），請勿將此 README 或相關 commit 內容公開到公司以外的地方。詳見〈[已知問題與待辦](#已知問題與待辦)〉。
 
-Chat with us: [Discord](https://discord.gg/nDceKgxnkV) | [Twitter](https://twitter.com/rustdesk) | [Reddit](https://www.reddit.com/r/rustdesk) | [YouTube](https://www.youtube.com/@rustdesk)
+---
 
-[![RustDesk Server Pro](https://img.shields.io/badge/RustDesk%20Server%20Pro-Advanced%20Features-blue)](https://rustdesk.com/pricing.html)
+## 目錄
 
-Yet another remote desktop solution, written in Rust. Works out of the box with no configuration required. You have full control of your data, with no concerns about security. You can use our rendezvous/relay server, [set up your own](https://rustdesk.com/server), or [write your own rendezvous/relay server](https://github.com/rustdesk/rustdesk-server-demo).
+- [專案背景](#專案背景)
+- [分支架構總覽](#分支架構總覽)
+- [各分支詳細差異](#各分支詳細差異)
+- [兩大產品線比較](#兩大產品線比較)
+- [客製化重點說明](#客製化重點說明)
+- [建置方式](#建置方式)
+- [已知問題與待辦](#已知問題與待辦)
 
-![image](https://user-images.githubusercontent.com/71636191/171661982-430285f0-2e12-4b1d-9957-4a58e375304d.png)
+---
 
-RustDesk welcomes contribution from everyone. See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for help getting started.
+## 專案背景
 
-[**FAQ**](https://github.com/rustdesk/rustdesk/wiki/FAQ)
+公司希望有一套「內部可控」的遠端桌面工具，取代對外部公有服務（RustDesk 官方 rendezvous/relay server、`admin.rustdesk.com` API）的依賴，並依角色拆成兩種安裝檔：
 
-[**BINARY DOWNLOAD**](https://github.com/rustdesk/rustdesk/releases)
+- **被控端（Host / User 版）**：安裝在一般使用者電腦上，等待被遠端連線控制，登入後才會顯示 RustDesk 原本的主畫面。
+- **控制端（Controller 版）**：安裝在 IT / 客服人員電腦上，用來輸入對方 ID 並主動發起遠端連線。
 
-[**NIGHTLY BUILD**](https://github.com/rustdesk/rustdesk/releases/tag/nightly)
+所有客製化都是在 `master`（即官方 RustDesk 上游分支，會持續同步官方更新）之上，以一系列 `user-custom*` 分支疊加而成，並未回饋（merge）回 `master`。
 
-[<img src="https://f-droid.org/badge/get-it-on.png"
-    alt="Get it on F-Droid"
-    height="80">](https://f-droid.org/en/packages/com.carriez.flutter_hbb)
-[<img src="https://flathub.org/api/badge?svg&locale=en"
-    alt="Get it on Flathub"
-    height="80">](https://flathub.org/apps/com.rustdesk.RustDesk)
+## 分支架構總覽
 
-## Dependencies
-
-Desktop versions use Flutter or Sciter (deprecated) for GUI, this tutorial is for Sciter only, since it is easier and more friendly to start. Check out our [CI](https://github.com/rustdesk/rustdesk/blob/master/.github/workflows/flutter-build.yml) for building Flutter version.
-
-Please download Sciter dynamic library yourself.
-
-[Windows](https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.win/x64/sciter.dll) |
-[Linux](https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.lnx/x64/libsciter-gtk.so) |
-[macOS](https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.osx/libsciter.dylib)
-
-## Raw Steps to build
-
-- Prepare your Rust development env and C++ build env
-
-- Install [vcpkg](https://github.com/microsoft/vcpkg), and set `VCPKG_ROOT` env variable correctly
-
-  - Windows: vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static aom:x64-windows-static
-  - Linux/macOS: vcpkg install libvpx libyuv opus aom
-
-- run `cargo run`
-
-## [Build](https://rustdesk.com/docs/en/dev/build/)
-
-## How to Build on Linux
-
-### Ubuntu 18 (Debian 10)
-
-```sh
-sudo apt install -y zip g++ gcc git curl wget nasm yasm libgtk-3-dev clang libxcb-randr0-dev libxdo-dev \
-        libxfixes-dev libxcb-shape0-dev libxcb-xfixes0-dev libasound2-dev libpulse-dev cmake make \
-        libclang-dev ninja-build libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libpam0g-dev
+```
+master  ── 官方 RustDesk 上游，持續追蹤官方 release，不含任何公司客製化
+  │
+  └─ feat/initial-custom          客製化起點（已停止推進，狀態「不完整」，可視為廢棄）
+       │
+       └─ user-custom             第一個可執行版本（實際延續的主線，非 feat/initial-custom 的延伸）
+            │
+            └─ user-custom-develop        MVP：功能皆可使用，正式導入 CoAsia 品牌／圖示
+                 │
+                 └─ user-custom-develop-ad         加入帳號登入驗證機制（登入後才能進主畫面）
+                      │
+                      ├─ user-custom-develop-ad-controller   控制端版：CoAsia_Remote_Controller（狀態：uncertain / 實驗中）
+                      │
+                      └─ user-custom-develop-ad-modify       被控端版：CoAsia_Remote（★ 目前主力開發分支，更新至 12/1）
 ```
 
-### openSUSE Tumbleweed
+> 這份樹狀圖是依實際 git 歷史（`git merge-base` / `git log branchA..branchB`）整理出來的，不是單純照分支命名猜測。例如 `user-custom-develop-ad-modify` 是接在 `user-custom-develop-ad` 之後、而不是接在 `user-custom-develop-ad-controller` 之後，兩者是**兄弟分支**，各自代表被控端與控制端兩條產品線。
 
-```sh
-sudo zypper install gcc-c++ git curl wget nasm yasm gcc gtk3-devel clang libxcb-devel libXfixes-devel cmake alsa-lib-devel gstreamer-devel gstreamer-plugins-base-devel xdotool-devel pam-devel
-```
+### 各分支狀態一覽
 
-### Fedora 28 (CentOS 8)
+| 分支 | 對應產品／用途 | 執行檔名稱 | 狀態 |
+|---|---|---|---|
+| `master` | 官方 RustDesk 原始碼 | `rustdesk` | 上游同步用，不部署 |
+| `feat/initial-custom` | 客製化最初試驗 | `rustdesk` | ⚠️ 已停滯（commit 標註「不完整」），建議視為廢棄 |
+| `user-custom` | 第一版可執行客製檔 | `rustdesk` | 歷史里程碑，已被下游分支取代 |
+| `user-custom-develop` | MVP，品牌置換完成 | `CoAsia_Remote` | 歷史里程碑，已被下游分支取代 |
+| `user-custom-develop-ad` | 加入登入驗證 | `CoAsia_Remote` | 兩條產品線的共同基礎，本身不直接部署 |
+| `user-custom-develop-ad-controller` | 控制端（IT/客服用） | `CoAsia_Remote_Controller` | 開發中，最後一版 commit 訊息標註「uncertain」，需再驗證 |
+| `user-custom-develop-ad-modify` | 被控端（一般使用者用） | `CoAsia_Remote` | ★ 目前最新、最活躍的開發分支（11/24–12/1 多次提交） |
 
-```sh
-sudo yum -y install gcc-c++ git curl wget nasm yasm gcc gtk3-devel clang libxcb-devel libxdo-devel libXfixes-devel pulseaudio-libs-devel cmake alsa-lib-devel gstreamer1-devel gstreamer1-plugins-base-devel pam-devel
-```
+---
 
-### Arch (Manjaro)
+## 各分支詳細差異
 
-```sh
-sudo pacman -Syu --needed unzip git cmake gcc curl wget yasm nasm zip make pkg-config clang gtk3 xdotool libxcb libxfixes alsa-lib pipewire
-```
+以下依開發先後順序說明每一階段實際變更的內容（皆已用 `git diff` 逐一核對程式碼，而非只看 commit 訊息）。
 
-### Install vcpkg
+### 1. `master` → `feat/initial-custom`
 
-```sh
-git clone https://github.com/microsoft/vcpkg
-cd vcpkg
-git checkout 2023.04.15
-cd ..
-vcpkg/bootstrap-vcpkg.sh
-export VCPKG_ROOT=$HOME/vcpkg
-vcpkg/vcpkg install libvpx libyuv opus aom
-```
+客製化的起點，改動集中在「拿掉官方雲端服務、精簡 UI」：
 
-### Fix libvpx (For Fedora)
+- **停用官方 API**：`src/common.rs` 將預設 API server 由 `https://admin.rustdesk.com` 改為空字串，不再打官方 API。
+- **新增 `key.env`**：內含 `TRUSTED_DEVICES` / `CONFIG_DEVICES` 兩組值。目前在原始碼中**找不到任何地方讀取這個檔案**，推測是預留給日後「預先寫入 server / key」機制用的草稿，尚未串接完成（對應 commit 訊息「1.更改ip/key」）。
+- **精簡側邊欄**：`flutter/lib/models/peer_tab_model.dart` 拿掉「Address book（通訊錄）」與「Accessible devices（可存取裝置）」兩個分頁，`maxTabCount` 由 5 降為 3。
+- **精簡設定頁**：`flutter/lib/desktop/pages/desktop_setting_page.dart` 拿掉「Account」「About」設定分頁，並隱藏「ID/Relay Server」設定項（使用者無法自行更改連線伺服器）。
+- **拿掉公有伺服器導引連結**：`connection_page.dart` 移除「setup_server_tip」提示連結。
+- 其餘為版本號、CI workflow、部分語言檔（de/nl）的瑣碎調整。
 
-```sh
-cd vcpkg/buildtrees/libvpx/src
-cd *
-./configure
-sed -i 's/CFLAGS+=-I/CFLAGS+=-fPIC -I/g' Makefile
-sed -i 's/CXXFLAGS+=-I/CXXFLAGS+=-fPIC -I/g' Makefile
-make
-cp libvpx.a $HOME/vcpkg/installed/x64-linux/lib/
-cd
-```
+此分支最後一個 commit（`929594970`，11/18）標註「不完整」，**日期其實晚於下面 `user-custom-develop` 的 MVP 完成日（11/14）**——也就是說這條線後來被放著沒再跟上，實際主線是從 `user-custom` 接下去發展的。
 
-### Build
+### 2. `feat/initial-custom` → `user-custom`
 
-```sh
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source $HOME/.cargo/env
-git clone --recurse-submodules https://github.com/rustdesk/rustdesk
-cd rustdesk
-mkdir -p target/debug
-wget https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.lnx/x64/libsciter-gtk.so
-mv libsciter-gtk.so target/debug
-VCPKG_ROOT=$HOME/vcpkg cargo run
-```
+從 `feat/initial-custom` 的中繼點（「控制端版本」commit）另外接續出來，持續強化連線頁與首頁：
 
-## How to build with Docker
+- `connection_page.dart`、`desktop_home_page.dart`、`desktop_tab_page.dart` 陸續調整（版面、狀態邏輯）。
+- `key.env` 內容改版一次。
+- 新增 `bridge_generated.h`（flutter_rust_bridge 產物，macOS 相關）。
 
-Begin by cloning the repository and building the Docker container:
+這是第一個被標為「可執行」的版本，共 4 個「可執行檔」commit。
 
-```sh
-git clone https://github.com/rustdesk/rustdesk
-cd rustdesk
-git submodule update --init --recursive
-docker build -t "rustdesk-builder" .
-```
+### 3. `user-custom` → `user-custom-develop`
 
-Then, each time you need to build the application, run the following command:
+**品牌正式導入**，是目前所有下游分支的品牌基礎：
 
-```sh
-docker run --rm -it -v $PWD:/home/user/rustdesk -v rustdesk-git-cache:/home/user/.cargo/git -v rustdesk-registry-cache:/home/user/.cargo/registry -e PUID="$(id -u)" -e PGID="$(id -g)" rustdesk-builder
-```
+- `flutter/windows/CMakeLists.txt`：執行檔輸出名稱由 `rustdesk` 改為 **`CoAsia_Remote`**。
+- `flutter/windows/runner/Runner.rc`：`FileDescription` / `ProductName` 等 Windows 版本資訊改為 `CoAsia_Remote`。
+- 換新的 App 圖示（`res/app_icon.ico`、`res/gen_icon.sh` 支援自動產生各尺寸圖示）。
+- `src/lang/tw.rs`：繁體中文字串微調。
+- **「11/13 把一次性密碼給加回來」**：在先前精簡設定頁時不小心連帶影響到一次性密碼（OTP）功能，此 commit 把它加回 `desktop_home_page.dart`（+109 行）。
+- **「11/14 MVP 功能皆可使用」**：標記為 MVP 完成的里程碑，同時把 `key.env` 從版本控制中移除（改列入 `.gitignore`，成為只存在本機的機密設定檔，不再進 git）。
 
-Note that the first build may take longer before dependencies are cached, subsequent builds will be faster. Additionally, if you need to specify different arguments to the build command, you may do so at the end of the command in the `<OPTIONAL-ARGS>` position. For instance, if you wanted to build an optimized release version, you would run the command above followed by `--release`. The resulting executable will be available in the target folder on your system, and can be run with:
+### 4. `user-custom-develop` → `user-custom-develop-ad`
 
-```sh
-target/debug/rustdesk
-```
+加入**帳號登入驗證機制**（是否等同「AD／Active Directory 網域驗證」，從程式碼看實際上是**呼叫公司內部一支簡單的帳密驗證 API**，並非真的串接 Windows AD，`ad` 較可能是「帳號 account」的縮寫，建議跟原作者 shawn_tsai 再確認命名意圖）：
 
-Or, if you're running a release executable:
+- `desktop_home_page.dart` 新增 `LoginPanel`：使用者需輸入帳號密碼、送出後呼叫
 
-```sh
-target/release/rustdesk
-```
+  ```
+  POST http://10.1.3.99:8000/auth
+  ```
 
-Please ensure that you run these commands from the root of the RustDesk repository, or the application may not find the required resources. Also note that other cargo subcommands such as `install` or `run` are not currently supported via this method as they would install or run the program inside the container instead of the host.
+  驗證通過（`_loggedIn = true`）才會顯示原本 RustDesk 的主畫面，否則卡在登入畫面。
+- 新增 `http` 套件依賴（`flutter/lib/main.dart`）。
 
-## File Structure
+> ⚠️ 這支內網 IP（`10.1.3.99:8000`）是寫死在 Dart 程式碼裡的明碼，沒有做 TLS，也沒有 timeout / 錯誤重試機制。若之後要正式上線，建議至少：改成可設定的環境變數、加上 HTTPS、處理逾時與伺服器異常情境。
 
-- **[libs/hbb_common](https://github.com/rustdesk/rustdesk/tree/master/libs/hbb_common)**: video codec, config, tcp/udp wrapper, protobuf, fs functions for file transfer, and some other utility functions
-- **[libs/scrap](https://github.com/rustdesk/rustdesk/tree/master/libs/scrap)**: screen capture
-- **[libs/enigo](https://github.com/rustdesk/rustdesk/tree/master/libs/enigo)**: platform specific keyboard/mouse control
-- **[libs/clipboard](https://github.com/rustdesk/rustdesk/tree/master/libs/clipboard)**: file copy and paste implementation for Windows, Linux, macOS.
-- **[src/ui](https://github.com/rustdesk/rustdesk/tree/master/src/ui)**: obsolete Sciter UI (deprecated)
-- **[src/server](https://github.com/rustdesk/rustdesk/tree/master/src/server)**: audio/clipboard/input/video services, and network connections
-- **[src/client.rs](https://github.com/rustdesk/rustdesk/tree/master/src/client.rs)**: start a peer connection
-- **[src/rendezvous_mediator.rs](https://github.com/rustdesk/rustdesk/tree/master/src/rendezvous_mediator.rs)**: Communicate with [rustdesk-server](https://github.com/rustdesk/rustdesk-server), wait for remote direct (TCP hole punching) or relayed connection
-- **[src/platform](https://github.com/rustdesk/rustdesk/tree/master/src/platform)**: platform specific code
-- **[flutter](https://github.com/rustdesk/rustdesk/tree/master/flutter)**: Flutter code for desktop and mobile
-- **[flutter/web/js](https://github.com/rustdesk/rustdesk/tree/master/flutter/web/v1/js)**: JavaScript for Flutter web client
+此分支是後面兩個「產品線」分支的共同基礎，本身不對外發行。
 
-## Screenshots
+### 5a. `user-custom-develop-ad` → `user-custom-develop-ad-controller`（控制端）
 
-![Connection Manager](https://github.com/rustdesk/rustdesk/assets/28412477/db82d4e7-c4bc-4823-8e6f-6af7eadf7651)
+只有 1 個 commit，訊息是「11/19 uncertain」，看起來是還在驗證中的實驗性改動：
 
-![Connected to a Windows PC](https://github.com/rustdesk/rustdesk/assets/28412477/9baa91e9-3362-4d06-aa1a-7518edcbd7ea)
+- `connection_page.dart`：把原本「只顯示 CoAsia 商標」的畫面，改成顯示「遠端 ID 輸入框 + Peer 清單（最近連線 / 收藏 / 已探索）」，也就是**開放使用者主動輸入對方 ID 發起連線**——這是「控制端」跟「被控端」介面上最核心的差異。
+- `Runner.rc` / `CMakeLists.txt`：執行檔品牌改名為 **`CoAsia_Remote_Controller`**。
 
-![File Transfer](https://github.com/rustdesk/rustdesk/assets/28412477/39511ad3-aa9a-4f8c-8947-1cce286a46ad)
+### 5b. `user-custom-develop-ad` → `user-custom-develop-ad-modify`（被控端，★ 目前主力）
 
-![TCP Tunneling](https://github.com/rustdesk/rustdesk/assets/28412477/78e8708f-e87e-4570-8373-1360033ea6c5)
+5 個 commit（11/24 ~ 12/1），是目前更新最頻繁、最新的分支，執行檔維持 **`CoAsia_Remote`** 品牌不變：
 
+- `desktop_home_page.dart` 大幅改寫（243 行變動），持續打磨登入後的主畫面。
+- `server_page.dart`：改寫「未驗證連入請求」（`buildUnAuthorized`）的處理邏輯——
+  - 有人嘗試遠端連線時，強制把視窗帶到前景並取得焦點（`windowManager.show()` / `focus()`），避免使用者沒注意到連線請求跳出視窗。
+  - 把「Accept and Elevate（接受並提權）」功能寫死關閉（`canElevate = false`），亦即被控端不再提供以系統管理員權限接受連線的選項。
+- `desktop_setting_page.dart`：把先前移除的「ID/Relay Server」設定項改為**用註解方式隱藏**（效果同樣是使用者看不到，但保留程式碼方便之後要恢復時直接取消註解）。
+- `src/lang/tw.rs`：繁中字串再微調 1 處。
+
+---
+
+## 兩大產品線比較
+
+| | 控制端<br>`user-custom-develop-ad-controller` | 被控端<br>`user-custom-develop-ad-modify` |
+|---|---|---|
+| 安裝對象 | IT / 客服人員 | 一般公司同仁 |
+| 執行檔名稱 | `CoAsia_Remote_Controller` | `CoAsia_Remote` |
+| 登入後畫面 | 遠端 ID 輸入框 + Peer 清單，可**主動發起**連線 | RustDesk 原生「等待被連線」主畫面 |
+| 收到連線請求時 | （非此分支重點） | 強制視窗跳到前景，且不提供「提權接受」選項 |
+| 目前狀態 | commit 標「uncertain」，需要再驗證 | 持續開發中，進度最新 |
+
+---
+
+## 客製化重點說明
+
+跨分支貫穿的客製化邏輯整理：
+
+1. **拿掉官方雲端依賴**：`admin.rustdesk.com` API 從一開始就被拔掉（見 `feat/initial-custom`），代表本專案預期串接**公司自架的 rendezvous/relay server**，而不是 RustDesk 官方服務。目前程式碼裡看不到自架 server 位址是寫在哪裡設定，建議跟建置流程 / 打包腳本的維護者確認實際 server 位址是怎麼帶進 App 的。
+2. **拿掉使用者可自行改連線伺服器的能力**：`ID/Relay Server` 設定、通訊錄、可存取裝置等功能都被移除或隱藏，避免一般使用者亂改設定或看到公司不想曝光的功能。
+3. **帳號登入閘門**：`ad` 系列分支之後，App 啟動後必須先登入公司內部帳密系統才能使用，等於是在 RustDesk 之外加了一層公司自己的存取控制。
+4. **角色分流**：`ad-controller` 與 `ad-modify` 分別對應「主動連線」與「被動接受連線」兩種使用情境，各自建置成不同執行檔。
+
+## 建置方式
+
+一般 Rust / Flutter 建置指令請參考 [CLAUDE.md](CLAUDE.md)（`python3 build.py --flutter` 等）。針對本專案客製化的部分，建置前請額外注意：
+
+1. **切換到正確的分支**：
+   - 要打包「被控端」給一般同仁使用 → `user-custom-develop-ad-modify`
+   - 要打包「控制端」給 IT/客服使用 → `user-custom-develop-ad-controller`（目前仍是實驗性版本，建議先測試再發放）
+2. **確認 `key.env`**：此檔案自 `user-custom-develop` 之後已被 `.gitignore`，不會出現在 `git clone` 下來的工作目錄中，需要另外向專案負責人索取或依實際需求重建；目前原始碼中尚未找到讀取此檔案的邏輯，使用前建議先確認它是否仍是必要檔案。
+3. **內部驗證 API 位址**：`http://10.1.3.99:8000/auth` 目前寫死在 `flutter/lib/desktop/pages/desktop_home_page.dart` 中，跨環境（測試機／正式機）建置前請確認這支 API 是否可連通，或考慮改為可設定值。
+4. 執行檔品牌名稱（`CoAsia_Remote` / `CoAsia_Remote_Controller`）由 `flutter/windows/CMakeLists.txt` 與 `flutter/windows/runner/Runner.rc` 控制，兩者需保持一致。
+
+## 已知問題與待辦
+
+- [ ] `key.env`（`TRUSTED_DEVICES` / `CONFIG_DEVICES`）目前查無使用處，需確認是否為未完成功能或已廢棄。
+- [ ] 內部驗證 API（`10.1.3.99:8000/auth`）為明碼 HTTP、IP 寫死、無逾時處理，建議正式導入前補強。
+- [ ] `feat/initial-custom` 分支已停滯多時，建議確認是否可封存（archive）或刪除，避免後續開發者誤以為是主線。
+- [ ] `user-custom-develop-ad-controller` 最後一版 commit 訊息為「uncertain」，功能穩定性需再驗證後才建議發布。
+- [ ] 目前沒有分支保護規則、PR 流程或測試涵蓋這些客製化改動，建議之後補上基本的 code review 流程。
+- [ ] 本 README 內含內網 IP 等機敏資訊，**請勿外流**；若之後要對外（例如上傳到公開 GitHub）需要先移除相關段落。
+
+---
+
+原始 RustDesk 專案資訊（安裝依賴、原生建置流程、授權、原作者致謝等）請見 [docs/README-rustdesk-upstream.md](docs/README-rustdesk-upstream.md)。
